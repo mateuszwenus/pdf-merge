@@ -9,6 +9,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.URL;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -30,13 +32,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class App {
 
-	private static final String DELETE_ALL = "Usuń wszystko";
-	private static final String ADD_FILES = "Dodaj";
-	private static final String DELETE_SELECTED = "Usuń zaznaczone";
-	private static final String MOVE_UP = "W górę";
-	private static final String MOVE_DOWN = "W dół";
-	private static final String GENERATE_PDF = "Utwórz PDF";
-
 	private static final String ICON_DELETE = "delete.png";
 	private static final String ICON_UP = "up.png";
 	private static final String ICON_DOWN = "down.png";
@@ -48,6 +43,7 @@ public class App {
 	private DefaultListModel listModel = new DefaultListModel();
 	private JProgressBar progressBar;
 	private JButton generateButton;
+	private ResourceBundle resourceBundle;
 
 	public static void main(String[] args) {
 		try {
@@ -58,7 +54,8 @@ public class App {
 	}
 
 	public App() {
-		frame = new JFrame("PDF merge");
+		resourceBundle = ResourceBundle.getBundle("messages", Locale.getDefault());
+		frame = new JFrame(resourceBundle.getString("app.title"));
 		frame.setLayout(new FlowLayout());
 		frame.add(createFramePanel());
 		frame.pack();
@@ -133,10 +130,10 @@ public class App {
 	}
 
 	private JButton createGenerateButton() {
-		generateButton = createButton(GENERATE_PDF, ICON_SAVE);
+		generateButton = createButton(resourceBundle.getString("action.generatePdf"), ICON_SAVE);
 		generateButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
-				GeneratePdfTask task = new GeneratePdfTask(listModel.toArray(), progressBar);
+				GeneratePdfTask task = new GeneratePdfTask(listModel.toArray(), progressBar, resourceBundle);
 				task.execute();
 			}
 		});
@@ -145,7 +142,7 @@ public class App {
 	}
 
 	private JButton createMoveDownButton() {
-		JButton moveDownButton = createButton(MOVE_DOWN, ICON_DOWN);
+		JButton moveDownButton = createButton(resourceBundle.getString("action.moveDown"), ICON_DOWN);
 		moveDownButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int[] idxArr = filesList.getSelectedIndices();
@@ -176,7 +173,7 @@ public class App {
 	}
 
 	private JButton createMoveUpButton() {
-		JButton moveUpButton = createButton(MOVE_UP, ICON_UP);
+		JButton moveUpButton = createButton(resourceBundle.getString("action.moveUp"), ICON_UP);
 		moveUpButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int[] idxArr = filesList.getSelectedIndices();
@@ -197,7 +194,7 @@ public class App {
 	}
 
 	private JButton createDeleteSelectedButton() {
-		JButton deleteSelectedButton = createButton(DELETE_SELECTED, ICON_DELETE);
+		JButton deleteSelectedButton = createButton(resourceBundle.getString("action.deleteSelected"), ICON_DELETE);
 		deleteSelectedButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int[] idxArr = filesList.getSelectedIndices();
@@ -210,7 +207,7 @@ public class App {
 	}
 
 	private JButton createDeleteAllButton() {
-		JButton deleteAllButton = createButton(DELETE_ALL, ICON_DELETE);
+		JButton deleteAllButton = createButton(resourceBundle.getString("action.deleteAll"), ICON_DELETE);
 		deleteAllButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				listModel.clear();
@@ -220,7 +217,7 @@ public class App {
 	}
 
 	private JButton createAddButton() {
-		JButton addButton = createButton(ADD_FILES, ICON_ADD);
+		JButton addButton = createButton(resourceBundle.getString("action.addFiles"), ICON_ADD);
 		addButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = new JFileChooser();

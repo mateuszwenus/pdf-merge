@@ -6,44 +6,38 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.ResourceBundle;
 
 import javax.swing.JProgressBar;
-import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 
 import com.lowagie.text.pdf.PdfCopyFields;
 import com.lowagie.text.pdf.PdfReader;
 
-public class GeneratePdfTask extends SwingWorker<Void, Void> {
+public class GeneratePdfTask extends SwingWorkerWithProgressBar<Void, Void> {
 
 	private Object[] files;
-	private JProgressBar progressBar;
 
-	public GeneratePdfTask(Object[] files, JProgressBar progressBar) {
-		super();
+	public GeneratePdfTask(Object[] files, JProgressBar progressBar, ResourceBundle resourceBundle) {
+		super(progressBar, resourceBundle);
 		this.files = files;
-		this.progressBar = progressBar;
 	}
 
-	protected Void doInBackground() throws Exception {
+	protected int getProgressBarMaximum() {
+		return files.length;
+	}
+
+	protected Void doWork() throws Exception {
 		OutputStream out = null;
-		String path = null;
-		boolean success = false;
+		PdfCopyFields pdfCopy = null;
 		try {
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					progressBar.setValue(0);
-					progressBar.setString("");
-					progressBar.setMaximum(files.length);
-				}
-			});
-			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
 			out = new FileOutputStream("pdf-merge-" + df.format(new Date()) + ".pdf");
-			PdfCopyFields pdfCopy = new PdfCopyFields(out);
+			pdfCopy = new PdfCopyFields(out);
 			for (int i = 0; i < files.length; i++) {
-				path = String.valueOf(files[i]);
+				String path = String.valueOf(files[i]);
 				InputStream in = null;
 				PdfReader reader = null;
 				try {
@@ -54,44 +48,29 @@ public class GeneratePdfTask extends SwingWorker<Void, Void> {
 					closeQuietly(reader);
 					closeQuietly(in);
 				}
-				final int value = i + 1;
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						progressBar.setValue(value);
-						progressBar.setString(value + "/" + files.length);
-					}
-				});
+				setProgressBarValue(i + 1);
 			}
 			pdfCopy.close();
-			success = true;
-		} catch (final Exception e) {
-			final String errorFile = path;
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					progressBar.setValue(files.length);
-					progressBar.setString("Błąd (" + errorFile + "): " + e.getMessage());
-				}
-			});
 		} finally {
-			if (success) {
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						progressBar.setString("Gotowe");
-					}
-				});
-			}
+			closeQuietly(pdfCopy);
 			closeQuietly(out);
 		}
 		return null;
 	}
 
-	private static void closeQuietly(PdfReader reader) {
+	private void closeQuietly(PdfCopyFields pdfCopy) {
+		if (pdfCopy != null) {
+			pdfCopy.close();
+		}
+	}
+
+	private void closeQuietly(PdfReader reader) {
 		if (reader != null) {
 			reader.close();
 		}
 	}
 
-	private static void closeQuietly(Closeable obj) {
+	private void closeQuietly(Closeable obj) {
 		if (obj != null) {
 			try {
 				obj.close();
